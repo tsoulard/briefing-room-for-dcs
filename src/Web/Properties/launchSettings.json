@@ -21,7 +21,8 @@
       "launchBrowser": true,
       "applicationUrl": "https://localhost:5001;http://localhost:5000",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "WINE_PREFIX_USER_LOCATION": "/mnt/Games/Bottles/DCS-World/drive_c/users/steamuser"
       }
     }
   }

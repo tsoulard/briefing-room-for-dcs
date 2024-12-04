@@ -136,21 +136,21 @@ namespace BriefingRoom4DCS.Data
 
             }
 
-            
+
             missingDCSDataWarnings(supportData, itemMap, "Aircraft");
 
 
             return itemMap;
         }
 
-        public DBEntryAircraft() {}
+        public DBEntryAircraft() { }
 
         internal Dictionary<int, Dictionary<string, object>> GetPylonsObject(string aircraftPayload)
         {
             var payload = Payloads.Find(x => x.name == aircraftPayload);
             if (payload == null)
                 return new Dictionary<int, Dictionary<string, object>>();
-            return payload.pylons.ToDictionary(x => x.num, x => new Dictionary<string, object> { { "CLSID", x.CLSID  }, {"settings", x.settings} });
+            return payload.pylons.ToDictionary(x => x.num, x => new Dictionary<string, object> { { "CLSID", x.CLSID }, { "settings", x.settings } });
         }
 
         internal Dictionary<int, Dictionary<string, object>> GetPylonsObject(DCSTask task)
@@ -158,21 +158,16 @@ namespace BriefingRoom4DCS.Data
             if (Payloads.Count == 0)
                 return new Dictionary<int, Dictionary<string, object>>();
             var payload = Toolbox.RandomFrom(Payloads.Where(x => x.tasks.Contains((int)task)).ToList()) ?? Toolbox.RandomFrom(Payloads);
-            return payload.pylons.Where(x => x != null).ToDictionary(x => x.num, x => new Dictionary<string, object> { { "CLSID", x.CLSID }, {"settings", x.settings} });
+            return payload.pylons.Where(x => x != null).ToDictionary(x => x.num, x => new Dictionary<string, object> { { "CLSID", x.CLSID }, { "settings", x.settings } });
         }
 
         internal void GetDCSPayloads()
         {
-            var userPath = Environment.GetFolderPath(System.Environment.SpecialFolder.UserProfile);
-            string folderPath;
-            if (Directory.Exists(Path.Join(userPath, "Saved Games", "DCS.openbeta")))
-            {
-                folderPath = Path.Join(userPath, "Saved Games", "DCS.openbeta", "MissionEditor", "UnitPayloads");
-            }
-            else
-            {
-                folderPath = Path.Join(userPath, "Saved Games", "DCS", "MissionEditor", "UnitPayloads");
-            }
+            var userPath = BriefingRoom.GetUserPath();
+            var dcsFolderName = BriefingRoom.GetDCSSavedGameFolderName();
+
+            var folderPath = Path.Join(userPath, "Saved Games", dcsFolderName, "MissionEditor", "UnitPayloads");
+
             if (!File.Exists(Path.Join(folderPath, $"{DCSID}.lua")))
                 return;
 
@@ -194,12 +189,13 @@ namespace BriefingRoom4DCS.Data
                     foreach (var pylonItem in ((IDictionary)itemEntry["pylons"]).Values)
                     {
                         var pylonItemEntry = (IDictionary)pylonItem;
-                        var pylon = new Pylon{
+                        var pylon = new Pylon
+                        {
                             CLSID = (string)pylonItemEntry["CLSID"],
                             num = (int)(long)pylonItemEntry["num"],
                         };
 
-                        if(pylonItemEntry.Contains("settings"))
+                        if (pylonItemEntry.Contains("settings"))
                         {
                             pylon.settings = new Dictionary<string, object>();
                             foreach (var settingItem in ((IDictionary)pylonItemEntry["settings"]))
@@ -207,20 +203,21 @@ namespace BriefingRoom4DCS.Data
                                 var settingKV = (DictionaryEntry)settingItem;
                                 pylon.settings.Add((string)settingKV.Key, settingKV.Value);
                             }
-                        
+
                         }
                         pylons.Add(pylon);
                     }
-            
-                    var payload = new Payload {
+
+                    var payload = new Payload
+                    {
                         name = (string)itemEntry["name"],
                         displayName = (string)(itemEntry.Contains("displayName") ? itemEntry["displayName"] : itemEntry["name"]),
                         tasks = tasks,
                         pylons = pylons,
                     };
 
-                    Payloads.Add( payload );
-                    
+                    Payloads.Add(payload);
+
                     BriefingRoom.PrintToLog($"Imported payload {payload.displayName} for {DCSID}");
                 }
 

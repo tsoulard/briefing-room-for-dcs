@@ -27,6 +27,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 
 namespace BriefingRoom4DCS
 {
@@ -35,6 +36,10 @@ namespace BriefingRoom4DCS
         public static string TARGETED_DCS_WORLD_VERSION { get; private set; }
         public static Dictionary<string, string> AvailableLanguagesMap { get; private set; }
         public static bool RUNNING_IN_DOCKER = Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true";
+
+        // Linux Support
+        public static string WinePrefixUserLocation = Environment.GetEnvironmentVariable("WINE_PREFIX_USER_LOCATION");
+        public static bool IsLinux = RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
 
         public static DatabaseLanguage LanguageDB { get; private set; }
 
@@ -69,10 +74,12 @@ namespace BriefingRoom4DCS
 
 
             OnMessageLogged = logHandler;
-            if (nukeDB) 
+            if (nukeDB)
             {
                 Database.Reset();
-            } else {
+            }
+            else
+            {
                 Database.Instance.Initialize();
             }
             LanguageDB = Database.Instance.Language;
@@ -88,7 +95,8 @@ namespace BriefingRoom4DCS
             return Database.Instance.GetAllEntries<DBEntryJSONUnit>().Where(x => x.Families.Contains(family)).Select(x => x.ID).ToList();
         }
 
-        public DatabaseEntryInfo[] GetDatabaseEntriesInfo(DatabaseEntryType entryType, string parameter = "") {
+        public DatabaseEntryInfo[] GetDatabaseEntriesInfo(DatabaseEntryType entryType, string parameter = "")
+        {
             return GetDatabaseEntriesInfo(LanguageKey, entryType, parameter);
         }
 
@@ -166,9 +174,10 @@ namespace BriefingRoom4DCS
             return null;
         }
 
-         public DatabaseEntryInfo? GetSingleDatabaseEntryInfo(DatabaseEntryType entryType, string id) {
+        public DatabaseEntryInfo? GetSingleDatabaseEntryInfo(DatabaseEntryType entryType, string id)
+        {
             return GetSingleDatabaseEntryInfo(LanguageKey, entryType, id);
-         }
+        }
 
         public static DatabaseEntryInfo? GetSingleDatabaseEntryInfo(string langKey, DatabaseEntryType entryType, string id)
         {
@@ -194,8 +203,8 @@ namespace BriefingRoom4DCS
         public static List<string> GetAircraftPayloads(string aircraftID) =>
             Database.Instance.GetEntry<DBEntryJSONUnit, DBEntryAircraft>(aircraftID).Payloads.Select(x => x.name).Distinct().Order().ToList();
 
-         public static List<SpawnPoint> GetTheaterSpawnPoints(string theaterID) =>
-            Database.Instance.GetEntry<DBEntryTheater>(theaterID).SpawnPoints.Select(x => x.ToSpawnPoint()).ToList();
+        public static List<SpawnPoint> GetTheaterSpawnPoints(string theaterID) =>
+           Database.Instance.GetEntry<DBEntryTheater>(theaterID).SpawnPoints.Select(x => x.ToSpawnPoint()).ToList();
 
 
         public static string GetAlias(int index) => Toolbox.GetAlias(index);
@@ -220,7 +229,7 @@ namespace BriefingRoom4DCS
             return CampaignGenerator.Generate(LanguageKey, new CampaignTemplate(templateFilePath));
         }
 
-        public  DCSCampaign GenerateCampaign(CampaignTemplate template)
+        public DCSCampaign GenerateCampaign(CampaignTemplate template)
         {
             return CampaignGenerator.Generate(LanguageKey, template);
         }
@@ -234,17 +243,34 @@ namespace BriefingRoom4DCS
 
         public static string GetBriefingRoomMarkdownPath() { return BRPaths.INCLUDE_MARKDOWN; }
 
-        public static string GetDCSMissionPath()
+        public static string GetDCSSavedGameFolderName()
         {
-            string[] possibleDCSPaths = new string[] { "DCS.earlyaccess", "DCS.openbeta", "DCS" };
+            var possibleDCSPaths = new string[] { "DCS", "DCS.earlyaccess", "DCS.openbeta" };
+            var userPath = GetUserPath();
 
-            for (int i = 0; i < possibleDCSPaths.Length; i++)
+            foreach (var possibleDCSPath in possibleDCSPaths)
             {
-                string dcsPath = Path.Combine(Toolbox.PATH_USER, "Saved Games", possibleDCSPaths[i], "Missions");
-                if (Directory.Exists(dcsPath)) return dcsPath;
+                var dcsPath = Path.Combine(userPath, "Saved Games", possibleDCSPath, "Missions");
+
+                if (Directory.Exists(dcsPath))
+                {
+                    // Found path let's return the saved games folder name
+                    return possibleDCSPath;
+                }
             }
 
-            return Toolbox.PATH_USER_DOCS;
+            // make best effort and return the standard "DCS" name
+            return possibleDCSPaths[1];
+        }
+
+        public static string GetDCSMissionPath()
+        {
+            var savedGameName = GetDCSSavedGameFolderName();
+            var dcsPath = Path.Combine(GetUserPath(), "Saved Games", savedGameName, "Missions");
+
+            if (Directory.Exists(dcsPath)) return dcsPath;
+
+            return PATH_USER_DOCS;
         }
 
         public static string GetDCSCampaignPath()
@@ -253,36 +279,52 @@ namespace BriefingRoom4DCS
 
             if (Directory.Exists(campaignPath)) return campaignPath;
 
-            return Toolbox.PATH_USER_DOCS;
+            return PATH_USER_DOCS;
         }
 
-        public string Translate(string key){
-                if(LanguageDB == null)
-                    return key;
-                return LanguageDB.Translate(LanguageKey, key);
+        public static string GetUserPath()
+        {
+            if (IsLinux && !string.IsNullOrWhiteSpace(WinePrefixUserLocation))
+            {
+                return WinePrefixUserLocation;
             }
-        public string Translate(string key, params object[] args) {
-            if(LanguageDB == null)
-                    return key;
+
+            return Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        }
+
+        public static string PATH_USER_DOCS = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+
+        public string Translate(string key)
+        {
+            if (LanguageDB == null)
+                return key;
+            return LanguageDB.Translate(LanguageKey, key);
+        }
+        public string Translate(string key, params object[] args)
+        {
+            if (LanguageDB == null)
+                return key;
             var template = LanguageDB.Translate(LanguageKey, key);
             return string.Format(template, args);
         }
 
-        public static string Translate(string langKey, string key){
-                if(LanguageDB == null)
-                    return key;
-                return LanguageDB.Translate(langKey, key);
-            }
-        public static string Translate(string langKey, string key, params object[] args) {
-            if(LanguageDB == null)
-                    return key;
+        public static string Translate(string langKey, string key)
+        {
+            if (LanguageDB == null)
+                return key;
+            return LanguageDB.Translate(langKey, key);
+        }
+        public static string Translate(string langKey, string key, params object[] args)
+        {
+            if (LanguageDB == null)
+                return key;
             var template = LanguageDB.Translate(langKey, key);
             return string.Format(template, args);
         }
 
-        internal static void PrintTranslatableWarning(string langKey,string key, params object[] args)
+        internal static void PrintTranslatableWarning(string langKey, string key, params object[] args)
         {
-           PrintToLog(Translate(langKey, key, args), LogMessageErrorLevel.Warning);
+            PrintToLog(Translate(langKey, key, args), LogMessageErrorLevel.Warning);
         }
 
 

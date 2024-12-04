@@ -299,11 +299,6 @@ namespace BriefingRoom4DCS
         }
 
 
-        internal static string PATH_USER { get; } = NormalizeDirectoryPath(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
-
-        internal static string PATH_USER_DOCS { get; } = NormalizeDirectoryPath(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments));
-
-
         internal static T[] GetEnumValues<T>() where T : Enum
         {
             return (T[])Enum.GetValues(typeof(T));
