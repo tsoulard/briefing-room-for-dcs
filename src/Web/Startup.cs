@@ -79,7 +79,7 @@ namespace BriefingRoom4DCS.GUI.Web
                 endpoints.MapControllers();
             });
 
-            // Electron.WindowManager.CreateWindowAsync();
+            Electron.WindowManager.CreateWindowAsync();
         }
     }
 }
