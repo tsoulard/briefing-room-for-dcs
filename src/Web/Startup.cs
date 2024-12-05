@@ -4,7 +4,6 @@ using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Blazored.LocalStorage;
-using ElectronNET.API;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Hosting;
@@ -78,8 +77,6 @@ namespace BriefingRoom4DCS.GUI.Web
                 endpoints.MapFallbackToPage("/_Host");
                 endpoints.MapControllers();
             });
-
-            Electron.WindowManager.CreateWindowAsync();
         }
     }
 }

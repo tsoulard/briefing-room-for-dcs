@@ -37,9 +37,7 @@ namespace BriefingRoom4DCS
         public static Dictionary<string, string> AvailableLanguagesMap { get; private set; }
         public static bool RUNNING_IN_DOCKER = Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true";
 
-        // Linux Support
-        public static string WinePrefixUserLocation = Environment.GetEnvironmentVariable("WINE_PREFIX_USER_LOCATION");
-        public static bool IsLinux = RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
+        public static string USER_PATH { get; private set; } = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
 
         public static DatabaseLanguage LanguageDB { get; private set; }
 
@@ -83,6 +81,8 @@ namespace BriefingRoom4DCS
                 Database.Instance.Initialize();
             }
             LanguageDB = Database.Instance.Language;
+
+            USER_PATH = ini.GetValue("Override", "UserFolderLocation", USER_PATH);
         }
 
         public void SetLogHandler(LogHandler logHandler)
@@ -246,11 +246,10 @@ namespace BriefingRoom4DCS
         public static string GetDCSSavedGameFolderName()
         {
             var possibleDCSPaths = new string[] { "DCS", "DCS.earlyaccess", "DCS.openbeta" };
-            var userPath = GetUserPath();
 
             foreach (var possibleDCSPath in possibleDCSPaths)
             {
-                var dcsPath = Path.Combine(userPath, "Saved Games", possibleDCSPath, "Missions");
+                var dcsPath = Path.Combine(USER_PATH, "Saved Games", possibleDCSPath, "Missions");
 
                 if (Directory.Exists(dcsPath))
                 {
@@ -266,7 +265,7 @@ namespace BriefingRoom4DCS
         public static string GetDCSMissionPath()
         {
             var savedGameName = GetDCSSavedGameFolderName();
-            var dcsPath = Path.Combine(GetUserPath(), "Saved Games", savedGameName, "Missions");
+            var dcsPath = Path.Combine(USER_PATH, "Saved Games", savedGameName, "Missions");
 
             if (Directory.Exists(dcsPath)) return dcsPath;
 
@@ -280,16 +279,6 @@ namespace BriefingRoom4DCS
             if (Directory.Exists(campaignPath)) return campaignPath;
 
             return PATH_USER_DOCS;
-        }
-
-        public static string GetUserPath()
-        {
-            if (IsLinux && !string.IsNullOrWhiteSpace(WinePrefixUserLocation))
-            {
-                return WinePrefixUserLocation;
-            }
-
-            return Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
         }
 
         public static string PATH_USER_DOCS = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);

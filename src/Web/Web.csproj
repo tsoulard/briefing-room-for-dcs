@@ -14,7 +14,6 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Swashbuckle.AspNetCore" Version="7.1.0" />
-    <PackageReference Include="ElectronNET.API" Version="23.6.2" />
     <ProjectReference Include="../CommonGUI/CommonGUI.csproj" />
   </ItemGroup>
   <ItemGroup>
@@ -23,10 +22,5 @@
     <Content Include="..\..\CustomConfigs\**" LinkBase="CustomConfigs" CopyToPublishDirectory="PreserveNewest" />
     <Content Include="..\..\Include\**" LinkBase="Include" CopyToPublishDirectory="PreserveNewest" />
     <Content Include="..\..\Media\**" LinkBase="Media" CopyToPublishDirectory="PreserveNewest" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Update="electron.manifest.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
   </ItemGroup>
 </Project>
