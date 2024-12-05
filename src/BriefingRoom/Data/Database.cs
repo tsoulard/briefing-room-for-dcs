@@ -166,7 +166,7 @@ namespace BriefingRoom4DCS.Data
             {
                 DBEntryAirbase a => DBEntries[dbType].Concat(DBEntryAirbase.LoadJSON(filePath, Language)).ToDictionary(pair => pair.Key, pair => pair.Value),
                 DBEntryCar a => DBEntries[dbType].Concat(DBEntryCar.LoadJSON(filePath, Language)).ToDictionary(pair => pair.Key, pair => pair.Value),
-                DBEntryAircraft a => DBEntries[dbType].Concat(DBEntryAircraft.LoadJSON(filePath, Language)).ToDictionary(pair => pair.Key, pair => pair.Value),
+                DBEntryAircraft a => DBEntries[dbType].Concat(DBEntryAircraft.LoadJSON(filePath, Language, Common)).ToDictionary(pair => pair.Key, pair => pair.Value),
                 DBEntryShip a => DBEntries[dbType].Concat(DBEntryShip.LoadJSON(filePath, Language)).ToDictionary(pair => pair.Key, pair => pair.Value),
                 DBEntryStatic a => DBEntries[dbType].Concat(DBEntryStatic.LoadJSON(filePath, Language)).ToDictionary(pair => pair.Key, pair => pair.Value),
                 DBEntryCargo a => DBEntries[dbType].Concat(DBEntryCargo.LoadJSON(filePath, Language)).ToDictionary(pair => pair.Key, pair => pair.Value),

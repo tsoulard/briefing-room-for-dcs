@@ -81,8 +81,6 @@ namespace BriefingRoom4DCS
                 Database.Instance.Initialize();
             }
             LanguageDB = Database.Instance.Language;
-
-            USER_PATH = ini.GetValue("Override", "UserFolderLocation", USER_PATH);
         }
 
         public void SetLogHandler(LogHandler logHandler)
@@ -243,13 +241,13 @@ namespace BriefingRoom4DCS
 
         public static string GetBriefingRoomMarkdownPath() { return BRPaths.INCLUDE_MARKDOWN; }
 
-        public static string GetDCSSavedGameFolderName()
+        public static string GetDCSSavedGameFolderName(string userPath = null)
         {
             var possibleDCSPaths = new string[] { "DCS", "DCS.earlyaccess", "DCS.openbeta" };
 
             foreach (var possibleDCSPath in possibleDCSPaths)
             {
-                var dcsPath = Path.Combine(USER_PATH, "Saved Games", possibleDCSPath, "Missions");
+                var dcsPath = Path.Combine(userPath ?? USER_PATH, "Saved Games", possibleDCSPath, "Missions");
 
                 if (Directory.Exists(dcsPath))
                 {
@@ -259,29 +257,29 @@ namespace BriefingRoom4DCS
             }
 
             // make best effort and return the standard "DCS" name
-            return possibleDCSPaths[1];
+            return possibleDCSPaths[0];
         }
 
-        public static string GetDCSMissionPath()
-        {
-            var savedGameName = GetDCSSavedGameFolderName();
-            var dcsPath = Path.Combine(USER_PATH, "Saved Games", savedGameName, "Missions");
+        // public static string GetDCSMissionPath()
+        // {
+        //     var savedGameName = GetDCSSavedGameFolderName();
+        //     var dcsPath = Path.Combine(USER_PATH, "Saved Games", savedGameName, "Missions");
 
-            if (Directory.Exists(dcsPath)) return dcsPath;
+        //     if (Directory.Exists(dcsPath)) return dcsPath;
 
-            return PATH_USER_DOCS;
-        }
+        //     return PATH_USER_DOCS;
+        // }
 
-        public static string GetDCSCampaignPath()
-        {
-            string campaignPath = Path.Combine(GetDCSMissionPath(), "Campaigns", "multilang");
+        // public static string GetDCSCampaignPath()
+        // {
+        //     string campaignPath = Path.Combine(GetDCSMissionPath(), "Campaigns", "multilang");
 
-            if (Directory.Exists(campaignPath)) return campaignPath;
+        //     if (Directory.Exists(campaignPath)) return campaignPath;
 
-            return PATH_USER_DOCS;
-        }
+        //     return PATH_USER_DOCS;
+        // }
 
-        public static string PATH_USER_DOCS = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+        // public static string PATH_USER_DOCS = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
 
         public string Translate(string key)
         {

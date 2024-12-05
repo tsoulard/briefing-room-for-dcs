@@ -38,13 +38,14 @@ namespace BriefingRoom4DCS.Data
         public int MinCampaignMissions { get; private set; }
         public int MaxCampaignMissions { get; private set; }
         public int DropOffDistanceMeters { get; private set; }
+        public string UserFolderLocation { get; private set; }
         internal DBCommonAirDefense AirDefense { get; private set; }
         internal DBCommonCAP CAP { get; private set; }
         internal DBCommonCarrierGroup CarrierGroup { get; private set; }
         internal DBCommonNames Names { get; private set; }
         internal DBCommonWind[] Wind { get; private set; }
         internal DBCommonBriefing Briefing { get; private set; }
-        internal DBCommonFrontLine FrontLine { get; private set;}
+        internal DBCommonFrontLine FrontLine { get; private set; }
 
         internal DatabaseCommon() { }
 
@@ -65,8 +66,9 @@ namespace BriefingRoom4DCS.Data
             MinCampaignMissions = commonIni.GetValue<int>("Limits", "MinCampaignMissions");
             MaxCampaignMissions = commonIni.GetValue<int>("Limits", "MaxCampaignMissions");
             DropOffDistanceMeters = commonIni.GetValue<int>("Limits", "DropOffDistanceMeters");
+            UserFolderLocation = commonIni.GetValue<string>("Override","UserFolderLocation");
 
-           
+
 
             foreach (string f in CommonOGG)
                 if (!File.Exists(Path.Combine(BRPaths.INCLUDE_OGG, $"{f}.ogg")))

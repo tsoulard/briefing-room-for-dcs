@@ -74,7 +74,7 @@ namespace BriefingRoom4DCS.Data
             throw new NotImplementedException();
         }
 
-        internal static Dictionary<string, DBEntry> LoadJSON(string filepath, DatabaseLanguage LangDB)
+        internal static Dictionary<string, DBEntry> LoadJSON(string filepath, DatabaseLanguage LangDB, DatabaseCommon common)
         {
             var itemMap = new Dictionary<string, DBEntry>(StringComparer.InvariantCulture);
             var data = JsonConvert.DeserializeObject<List<Aircraft>>(File.ReadAllText(filepath));
@@ -130,8 +130,8 @@ namespace BriefingRoom4DCS.Data
                     Families = supportInfo.families.Select(x => (UnitFamily)Enum.Parse(typeof(UnitFamily), x, true)).ToArray(),
                     LowPolly = supportInfo.lowPolly
                 };
-                DBaircraft.GetDCSPayloads();
-                DBaircraft.GetDCSLiveries();
+                DBaircraft.GetDCSPayloads(common.UserFolderLocation);
+                DBaircraft.GetDCSLiveries(common.UserFolderLocation);
                 itemMap.Add(id, DBaircraft);
 
             }
@@ -161,12 +161,11 @@ namespace BriefingRoom4DCS.Data
             return payload.pylons.Where(x => x != null).ToDictionary(x => x.num, x => new Dictionary<string, object> { { "CLSID", x.CLSID }, { "settings", x.settings } });
         }
 
-        internal void GetDCSPayloads()
+        internal void GetDCSPayloads(string userPath = null)
         {
-            var userPath = BriefingRoom.GetUserPath();
             var dcsFolderName = BriefingRoom.GetDCSSavedGameFolderName();
 
-            var folderPath = Path.Join(userPath, "Saved Games", dcsFolderName, "MissionEditor", "UnitPayloads");
+            var folderPath = Path.Join(userPath ?? BriefingRoom.USER_PATH, "Saved Games", dcsFolderName, "MissionEditor", "UnitPayloads");
 
             if (!File.Exists(Path.Join(folderPath, $"{DCSID}.lua")))
                 return;
@@ -230,18 +229,12 @@ namespace BriefingRoom4DCS.Data
 
         }
 
-        internal void GetDCSLiveries()
+        internal void GetDCSLiveries(string userPath = null)
         {
-            var userPath = Environment.GetFolderPath(System.Environment.SpecialFolder.UserProfile);
-            string folderPath;
-            if (Directory.Exists(Path.Join(userPath, "Saved Games", "DCS.openbeta")))
-            {
-                folderPath = Path.Join(userPath, "Saved Games", "DCS.openbeta", "Liveries");
-            }
-            else
-            {
-                folderPath = Path.Join(userPath, "Saved Games", "DCS", "Liveries");
-            }
+            var dcsFolderName = BriefingRoom.GetDCSSavedGameFolderName();
+
+            var folderPath = Path.Join(userPath ?? BriefingRoom.USER_PATH, "Saved Games", dcsFolderName, "Liveries");
+
             if (!Directory.Exists(Path.Join(folderPath, $"{DCSID}")))
                 return;
 
